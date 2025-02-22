@@ -90,16 +90,21 @@ def main():
         st.markdown("""
         ### Expected CSV Format:
         Your CSV should contain the following columns:
-        - `date`: Date of water usage (YYYY-MM-DD)
-        - `usage`: Water usage in gallons
+        - `Access Code`: Your water meter access code
+        - `Time Interval`: Date in MM/DD/YYYY format
+        - `Consumption`: Water usage in CCF (will be converted to gallons)
+        - `Units`: Should be 'CCF'
 
         Example:
         ```
-        date,usage
-        2025-01-01,150.5
-        2025-01-02,145.2
-        2025-01-03,160.8
+        Access Code,Time Interval,Consumption,Units
+        12345,02/22/2025,2.5,CCF
+        12345,02/23/2025,2.1,CCF
+        12345,02/24/2025,2.8,CCF
         ```
+
+        Note: The dashboard automatically converts CCF (Centum Cubic Feet) to gallons
+        (1 CCF = 748.052 gallons) for easier understanding.
         """)
 
 if __name__ == "__main__":
