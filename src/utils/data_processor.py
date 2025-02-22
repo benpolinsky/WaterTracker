@@ -29,23 +29,9 @@ def process_csv_data(file):
     if not validation_result['is_valid']:
         raise ValueError(validation_result['message'])
 
-    # Convert date format with more robust error handling
-    try:
-        df['date'] = pd.to_datetime(df['Time Interval'], format='%m/%d/%Y')
-    except ValueError as e:
-        raise ValueError(f"Error parsing dates. Please ensure dates are in MM/DD/YYYY format. Error: {str(e)}")
-
-    # Convert consumption from CCF to gallons
+    # Add transformed columns while keeping originals
+    df['date'] = pd.to_datetime(df['Time Interval'], format='%m/%d/%Y')
     df['usage'] = df['Consumption'].apply(ccf_to_gallons)
-
-    # Select and reorder needed columns
-    df = df[['date', 'usage']]
-
-    # Sort by date
-    df = df.sort_values('date')
-
-    # Handle missing values
-    df = df.dropna()
 
     return df
 

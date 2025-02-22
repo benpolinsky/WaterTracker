@@ -35,53 +35,49 @@ def main():
         try:
             # Process and validate data
             df = process_csv_data(uploaded_file)
-            validation_result = validate_data(df)
 
-            if validation_result['is_valid']:
-                st.session_state.data = df
+            # Store data in session state
+            st.session_state.data = df
 
-                # Create three columns for statistics
-                col1, col2, col3 = st.columns(3)
-                stats = calculate_statistics(df)
+            # Create three columns for statistics
+            col1, col2, col3 = st.columns(3)
+            stats = calculate_statistics(df)
 
-                with col1:
-                    st.metric("Average Daily Usage", f"{stats['mean_usage']:.2f} gal")
-                with col2:
-                    st.metric("Peak Usage", f"{stats['max_usage']:.2f} gal")
-                with col3:
-                    st.metric("Total Usage", f"{stats['total_usage']:.2f} gal")
+            with col1:
+                st.metric("Average Daily Usage", f"{stats['mean_usage']:.2f} gal")
+            with col2:
+                st.metric("Peak Usage", f"{stats['max_usage']:.2f} gal")
+            with col3:
+                st.metric("Total Usage", f"{stats['total_usage']:.2f} gal")
 
-                # Visualization section
-                st.header("Usage Visualization")
-                chart_type = st.selectbox(
-                    "Select Chart Type",
-                    ["Line Chart", "Bar Chart", "Usage Distribution"]
-                )
+            # Visualization section
+            st.header("Usage Visualization")
+            chart_type = st.selectbox(
+                "Select Chart Type",
+                ["Line Chart", "Bar Chart", "Usage Distribution"]
+            )
 
-                if chart_type in ["Line Chart", "Bar Chart"]:
-                    fig = create_time_series_plot(df, chart_type)
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    fig = create_usage_histogram(df)
-                    st.plotly_chart(fig, use_container_width=True)
-
-                # Trend Analysis
-                st.header("Trend Analysis")
-                trends = analyze_trends(df)
-                st.write(trends)
-
-                # Export functionality
-                st.header("Export Analysis")
-                csv = df.to_csv(index=False)
-                st.download_button(
-                    label="Download Processed Data",
-                    data=csv,
-                    file_name="processed_water_usage.csv",
-                    mime="text/csv"
-                )
-
+            if chart_type in ["Line Chart", "Bar Chart"]:
+                fig = create_time_series_plot(df, chart_type)
+                st.plotly_chart(fig, use_container_width=True)
             else:
-                st.error(validation_result['message'])
+                fig = create_usage_histogram(df)
+                st.plotly_chart(fig, use_container_width=True)
+
+            # Trend Analysis
+            st.header("Trend Analysis")
+            trends = analyze_trends(df)
+            st.write(trends)
+
+            # Export functionality
+            st.header("Export Analysis")
+            csv = df.to_csv(index=False)
+            st.download_button(
+                label="Download Processed Data",
+                data=csv,
+                file_name="processed_water_usage.csv",
+                mime="text/csv"
+            )
 
         except Exception as e:
             st.error(f"Error processing file: {str(e)}")
