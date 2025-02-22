@@ -13,8 +13,9 @@ def process_csv_data(file):
     """
     Process uploaded CSV file into a pandas DataFrame
     """
-    # Read CSV with more lenient whitespace handling
+    # Read CSV with more lenient whitespace handling and clean column names
     df = pd.read_csv(file, skipinitialspace=True)
+    df.columns = [col.lstrip('\ufeff').strip() for col in df.columns]
 
     # Debug print to show raw column names
     print("DEBUG - Raw CSV columns:", df.columns.tolist())
@@ -22,11 +23,6 @@ def process_csv_data(file):
     for col in df.columns:
         print(f"  {repr(col)}")
     print("DEBUG - Column types:", df.dtypes)
-
-    # Clean column names during validation
-    validation_result = validate_data(df)
-    if not validation_result['is_valid']:
-        raise ValueError(validation_result['message'])
 
     # Clean up time_interval column by stripping whitespace
     df['Time Interval'] = df['Time Interval'].str.strip()
@@ -55,15 +51,9 @@ def validate_data(df):
     """
     Validate the uploaded data format and content
     """
-    # First clean the column names - handle BOM and whitespace
-    df.columns = [col.lstrip('\ufeff').strip() for col in df.columns]
-
-    # Debug print after cleaning
-    print("DEBUG - Cleaned column names:", df.columns.tolist())
-
     required_columns = ['Access Code', 'Time Interval', 'Consumption', 'Units']
 
-    # Check for required columns (case-sensitive but whitespace-tolerant)
+    # Check for required columns
     missing_cols = [col for col in required_columns if col not in df.columns]
     if missing_cols:
         return {
