@@ -16,20 +16,22 @@ def process_csv_data(file):
     # Read CSV with more lenient whitespace handling
     df = pd.read_csv(file, skipinitialspace=True)
 
-    # Rename columns to remove spaces and standardize names
-    df.columns = [col.strip().lower().replace(' ', '_') for col in df.columns]
+    # Validate data first
+    validation_result = validate_data(df)
+    if not validation_result['is_valid']:
+        raise ValueError(validation_result['message'])
 
     # Clean up time_interval column by stripping whitespace
-    df['time_interval'] = df['time_interval'].str.strip()
+    df['Time Interval'] = df['Time Interval'].str.strip()
 
     # Convert date format with more robust error handling
     try:
-        df['date'] = pd.to_datetime(df['time_interval'], format='%m/%d/%Y')
+        df['date'] = pd.to_datetime(df['Time Interval'], format='%m/%d/%Y')
     except ValueError as e:
         raise ValueError(f"Error parsing dates. Please ensure dates are in MM/DD/YYYY format. Error: {str(e)}")
 
     # Convert consumption from CCF to gallons
-    df['usage'] = df['consumption'].apply(ccf_to_gallons)
+    df['usage'] = df['Consumption'].apply(ccf_to_gallons)
 
     # Select and reorder needed columns
     df = df[['date', 'usage']]
@@ -46,14 +48,11 @@ def validate_data(df):
     """
     Validate the uploaded data format and content
     """
-    required_columns = ['access_code', 'time_interval', 'consumption', 'units']
+    required_columns = ['Access Code', 'Time Interval', 'Consumption', 'Units']
 
-    # Check for required columns (case-insensitive and whitespace-tolerant)
-    df_cols = [col.strip().lower() for col in df.columns]
-    required_cols_clean = [col.strip().lower() for col in required_columns]
-
-    if not all(col in df_cols for col in required_cols_clean):
-        missing_cols = [col for col in required_cols_clean if col not in df_cols]
+    # Check for required columns (exact match with original names)
+    missing_cols = [col for col in required_columns if col not in df.columns]
+    if missing_cols:
         return {
             'is_valid': False,
             'message': f"CSV must contain these columns: {', '.join(required_columns)}. Missing: {', '.join(missing_cols)}"
@@ -61,7 +60,7 @@ def validate_data(df):
 
     # Check for valid date format after stripping whitespace
     try:
-        test_dates = pd.to_datetime(df['time_interval'].str.strip(), format='%m/%d/%Y')
+        test_dates = pd.to_datetime(df['Time Interval'].str.strip(), format='%m/%d/%Y')
     except Exception:
         return {
             'is_valid': False,
@@ -69,21 +68,21 @@ def validate_data(df):
         }
 
     # Check for numeric consumption values
-    if not pd.to_numeric(df['consumption'], errors='coerce').notnull().all():
+    if not pd.to_numeric(df['Consumption'], errors='coerce').notnull().all():
         return {
             'is_valid': False,
             'message': "Consumption values must be numeric"
         }
 
     # Check for negative consumption values
-    if (pd.to_numeric(df['consumption']) < 0).any():
+    if (pd.to_numeric(df['Consumption']) < 0).any():
         return {
             'is_valid': False,
             'message': "Consumption values cannot be negative"
         }
 
     # Verify units are CCF
-    if not all(unit.strip().upper() == 'CCF' for unit in df['units']):
+    if not all(unit.strip().upper() == 'CCF' for unit in df['Units']):
         return {
             'is_valid': False,
             'message': "All units must be in CCF"
