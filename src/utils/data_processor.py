@@ -18,8 +18,14 @@ def process_csv_data(file):
     # Rename columns to remove spaces and standardize names
     df.columns = [col.strip().lower().replace(' ', '_') for col in df.columns]
 
-    # Convert date format
-    df['date'] = pd.to_datetime(df['time_interval'], format='%m/%d/%Y')
+    # Clean up time_interval column by stripping whitespace
+    df['time_interval'] = df['time_interval'].str.strip()
+
+    # Convert date format with more robust error handling
+    try:
+        df['date'] = pd.to_datetime(df['time_interval'], format='%m/%d/%Y')
+    except ValueError as e:
+        raise ValueError(f"Error parsing dates. Please ensure dates are in MM/DD/YYYY format. Error: {str(e)}")
 
     # Convert consumption from CCF to gallons
     df['usage'] = df['consumption'].apply(ccf_to_gallons)
@@ -49,13 +55,13 @@ def validate_data(df):
             'message': "CSV must contain 'Access Code', 'Time Interval', 'Consumption', and 'Units' columns"
         }
 
-    # Check for valid date format
+    # Check for valid date format after stripping whitespace
     try:
-        pd.to_datetime(df['time_interval'], format='%m/%d/%Y')
+        test_dates = pd.to_datetime(df['time_interval'].str.strip(), format='%m/%d/%Y')
     except Exception:
         return {
             'is_valid': False,
-            'message': "Invalid date format. Please use MM/DD/YYYY format for Time Interval"
+            'message': "Invalid date format. Please ensure dates are in MM/DD/YYYY format with no extra spaces"
         }
 
     # Check for numeric consumption values
