@@ -48,9 +48,9 @@ def analyze_trends(df):
     - Trend strength (R-value): {trend_analysis['trend_strength']:.2f}
     
     ### Peak Usage Days
-    """
+"""
     
     for day in trend_analysis['peak_days']:
-        trend_text += f"- {day['date'].strftime('%Y-%m-%d')}: {day['usage']:.2f} gallons\n"
-    
+        trend_text += f"\t- {day['date'].strftime('%Y-%m-%d')}: {day['usage']:.2f} gallons\n"
+
     return trend_text
