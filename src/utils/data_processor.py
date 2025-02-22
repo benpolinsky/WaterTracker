@@ -24,9 +24,6 @@ def process_csv_data(file):
         print(f"  {repr(col)}")
     print("DEBUG - Column types:", df.dtypes)
 
-    # Clean up time_interval column by stripping whitespace
-    df['Time Interval'] = df['Time Interval'].str.strip()
-
     # Convert date format with more robust error handling
     try:
         df['date'] = pd.to_datetime(df['Time Interval'], format='%m/%d/%Y')
@@ -53,21 +50,23 @@ def validate_data(df):
     """
     required_columns = ['Access Code', 'Time Interval', 'Consumption', 'Units']
 
+    # Print detailed comparison for debugging
+    print("\nDEBUG - Validation comparison:")
+    print("Required columns:", required_columns)
+    print("Actual columns:", list(df.columns))
+    print("\nDetailed column comparison:")
+    for req_col in required_columns:
+        if req_col in df.columns:
+            print(f"Found: {req_col}")
+        else:
+            print(f"Missing: {req_col} (type expected: str, actual columns types: {df.dtypes.to_dict()})")
+
     # Check for required columns
-    missing_cols = [col for col in required_columns if col not in df.columns]
+    missing_cols = [col for col in required_columns if col not in list(df.columns)]
     if missing_cols:
         return {
             'is_valid': False,
             'message': f"CSV must contain these columns: {', '.join(required_columns)}. Missing: {', '.join(missing_cols)}"
-        }
-
-    # Check for valid date format after stripping whitespace
-    try:
-        test_dates = pd.to_datetime(df['Time Interval'].str.strip(), format='%m/%d/%Y')
-    except Exception:
-        return {
-            'is_valid': False,
-            'message': "Invalid date format. Please ensure dates are in MM/DD/YYYY format with no extra spaces"
         }
 
     # Check for numeric consumption values
