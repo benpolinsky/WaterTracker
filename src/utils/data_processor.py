@@ -13,7 +13,8 @@ def process_csv_data(file):
     """
     Process uploaded CSV file into a pandas DataFrame
     """
-    df = pd.read_csv(file)
+    # Read CSV with more lenient whitespace handling
+    df = pd.read_csv(file, skipinitialspace=True)
 
     # Rename columns to remove spaces and standardize names
     df.columns = [col.strip().lower().replace(' ', '_') for col in df.columns]
@@ -47,12 +48,15 @@ def validate_data(df):
     """
     required_columns = ['access_code', 'time_interval', 'consumption', 'units']
 
-    # Check for required columns (case-insensitive)
+    # Check for required columns (case-insensitive and whitespace-tolerant)
     df_cols = [col.strip().lower() for col in df.columns]
-    if not all(col.lower() in df_cols for col in required_columns):
+    required_cols_clean = [col.strip().lower() for col in required_columns]
+
+    if not all(col in df_cols for col in required_cols_clean):
+        missing_cols = [col for col in required_cols_clean if col not in df_cols]
         return {
             'is_valid': False,
-            'message': "CSV must contain 'Access Code', 'Time Interval', 'Consumption', and 'Units' columns"
+            'message': f"CSV must contain these columns: {', '.join(required_columns)}. Missing: {', '.join(missing_cols)}"
         }
 
     # Check for valid date format after stripping whitespace
