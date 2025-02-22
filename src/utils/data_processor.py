@@ -24,6 +24,11 @@ def process_csv_data(file):
         print(f"  {repr(col)}")
     print("DEBUG - Column types:", df.dtypes)
 
+    # Validate data first before any transformations
+    validation_result = validate_data(df)
+    if not validation_result['is_valid']:
+        raise ValueError(validation_result['message'])
+
     # Convert date format with more robust error handling
     try:
         df['date'] = pd.to_datetime(df['Time Interval'], format='%m/%d/%Y')
@@ -54,15 +59,9 @@ def validate_data(df):
     print("\nDEBUG - Validation comparison:")
     print("Required columns:", required_columns)
     print("Actual columns:", list(df.columns))
-    print("\nDetailed column comparison:")
-    for req_col in required_columns:
-        if req_col in df.columns:
-            print(f"Found: {req_col}")
-        else:
-            print(f"Missing: {req_col} (type expected: str, actual columns types: {df.dtypes.to_dict()})")
 
     # Check for required columns
-    missing_cols = [col for col in required_columns if col not in list(df.columns)]
+    missing_cols = [col for col in required_columns if col not in df.columns]
     if missing_cols:
         return {
             'is_valid': False,
